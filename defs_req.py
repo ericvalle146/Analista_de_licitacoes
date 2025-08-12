@@ -2,14 +2,16 @@ from langchain_openai import ChatOpenAI
 import os
 from langchain.prompts import ChatPromptTemplate
 from vectorstore import ensure_chroma, ensure_chroma_csv
-
-
+from dotenv import load_dotenv
+load_dotenv()
+OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 
 #====== EXTRAÇÃO DE REQUISITOS LICITAÇÃO ======##
 
 # carregar modelo
 def load_model(model):
-    return ChatOpenAI(model=model, openai_api_key="")
+    return ChatOpenAI(model=model, openai_api_key=OPENAI_API_KEY
+)
 
 # Criação banco vetorial da licitação
 def banco_doc_licitacao():
@@ -39,12 +41,12 @@ def prompt_rag_structured():
     - Não mencione, explique ou faça referência ao mecanismo que forneceu o texto. Trabalhe apenas com o que foi recebido.
     
     2) Objetivo imediato:
-    - Extraia **até 20 requisitos/modulos distintos** do texto recebido, obedecendo estas regras:
-        ** Se o texto contiver 20 ou mais requisitos/modulos claramente expressos, retorne **20** — priorizando os requisitos/modulos mais explícitos e operacionais.
-        ** Se o texto contiver menos de 20 requisitos/modulos explícitos, retorne apenas os requisitos/modulos que existem — **não crie ou invente** requisitos/modulos adicionais.
+    - Extraia até 20 requisitos/modulos distintos do texto recebido, obedecendo estas regras:
+        * Se o texto contiver 20 ou mais requisitos/modulos claramente expressos, retorne *20 — priorizando os requisitos/modulos mais explícitos e operacionais.
+        * Se o texto contiver menos de 20 requisitos/modulos explícitos, retorne apenas os requisitos/modulos que existem — *não crie ou invente requisitos/modulos adicionais.
 
     3) Regras de conteúdo e fidelidade:
-    - **Preserve 100%** da redação do requisito tal qual aparece no texto. Não reescreva, não resuma, não interprete.
+    - Preserve 100% da redação do requisito tal qual aparece no texto. Não reescreva, não resuma, não interprete.
     - Inclua somente requisitos/modulos EXPLÍCITOS. Não transforme exemplos, observações explicativas ou contextos em requisitos/modulos se eles não estiverem formulados como obrigação/condição/entrega.
     - Preserve referências cruzadas e normativas exatamente como no original.
     - Se um requisito ocupar várias frases ou parágrafos, inclua todas as frases pertinentes em UMA SÓ LINHA (no output), mantendo pontuação e termos normativos.
@@ -54,7 +56,7 @@ def prompt_rag_structured():
     - SEMPRE, inclua alguma categoria para cada requisito. Não deixe de incluir uma categoria para cada requisito, mesmo que ele não esteja explicitamente mencionado no texto.
 
     5) Formato de saída (OBRIGATÓRIO — pronto para CSV):
-    - Cada requisito deve ser **uma linha separada**, entre aspas duplas, exatamente neste formato:
+    - Cada requisito deve ser uma linha separada, entre aspas duplas, exatamente neste formato:
         "Categoria: <texto integral do requisito com numeração do módulo se existir>"
     - Não coloque numeradores extras, bullets, cabeçalhos, ou explicações.
     - NADA além dessas linhas deve ser impresso. Qualquer texto adicional é estritamente proibido.
@@ -87,7 +89,7 @@ def prompt_rag_structured():
     - Regra prática para dividir longas sequências: se o módulo x.y der 100 caracteres, o módulo x.y tem 100 caracteres, a junção dos dois terá que dar 150 caracteres para melhor leitura.
     - Regras: Você nunca quando usar o agrupamento deverá preservar todos os requisitos/modulos agrupados juntos na mesma linha, sempre resuma para dar uma linha resumida com todas as informações necessárias.
 
-    11) Quando **NÃO** agrupar:
+    11) Quando NÃO agrupar:
     - Se qualquer subitem do conjunto apresentar conflito semântico (condições mutuamente excludentes), prazos diferentes, responsáveis distintos, valores distintos ou restrições incompatíveis — NÃO agrupar; liste separadamente.
     - Se a agrupação implicar perda ou omissão de informações críticas (prazos, valores, limites), NÃO agrupar.
     - Se os subitens incluírem aprovações, penalidades ou exceções com efeitos distintos, NÃO agrupar.
@@ -123,7 +125,7 @@ def request_exatraction():
 "aqui você faz uma tool"
 def ler_ultimas_linhas_csv(caminho_arquivo="requisitos.csv", num_linhas=4) -> str:
     """
-    Lê as últimas `num_linhas` linhas do CSV e retorna como string concatenada, separadas por nova linha.
+    Lê as últimas num_linhas linhas do CSV e retorna como string concatenada, separadas por nova linha.
     Se o arquivo não existir ou estiver vazio, retorna string vazia.
     """
     try:

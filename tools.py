@@ -1,5 +1,5 @@
 from langchain.agents import Tool
-from defs_analist import rag_banco_base, adicionar_requisito
+from defs_analist import rag_banco_base, adicionar_requisito, verificar_ultimas_linhas
 from defs_req import alimentacao_req
 
 tool_rag = Tool(
@@ -20,17 +20,19 @@ adicionar_requisito_tool = Tool(
     description="""
     Adiciona requisito ao arquivo CSV.
     
-    Use exatamente este modelo de esqueleto(exemplo apenas):
-    numero="X", modulo="todas as palavras que estiverem antes dos dois pontos ":" contido no requisito", funcionalidade="tudo depois dos dois primeiros dois prontos ":", contido no requisito ", funcionalidade_similar="Fucionalidade similar encontrada com a função RAG", descricao="descrição detalhado do requisito", tipo="Funcional", obrigatoriedade="Obrigatorio", nivel_similaridade="Atende/Atende parcialmente/Não atende"
+    FORMATO OBRIGATÓRIO (todos os 8 campos):
+    numero="X", modulo="X", funcionalidade="X", funcionalidade_similar="X", descricao="X", tipo="Funcional", obrigatoriedade="Obrigatorio", nivel_similaridade="Atende"
     
-    Parametros obrigatorios (todos entre aspas duplas):
-    - numero: numero do requisito
-    - modulo: todas as palavras que estiverem antes dos dois pontos ":" contino no requisito
-    - funcionalidade: nome da funcionalidade  
-    - funcionalidade_similar: funcionalidade do TRT_BASE
-    - descricao: descrição detalhado do requisito
-    - tipo: Funcional ou Nao Funcional
-    - obrigatoriedade: Obrigatorio ou Opcional
-    - nivel_similaridade: Atende ou Atende Parcialmente ou Nao Atende
+    CAMPO NIVEL_SIMILARIDADE É OBRIGATÓRIO:
+    - Use EXATAMENTE: "Atende", "Atende_parcialmente" ou "Nao_atende"  
+    - NUNCA deixe vazio!
+    
+    Todos os parâmetros devem estar entre aspas duplas.
     """
+)
+
+tool_verificar_progresso = Tool(
+    name="Verificar_Progresso",
+    func=verificar_ultimas_linhas,
+    description="Verifica as duas últimas linhas do arquivo analise.csv para ver o progresso. Útil para continuar de onde parou."
 )

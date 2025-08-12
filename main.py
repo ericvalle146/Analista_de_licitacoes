@@ -5,8 +5,8 @@ from langchain.prompts.chat import (
     ChatPromptTemplate, SystemMessagePromptTemplate, HumanMessagePromptTemplate
 )
 from defs_req import load_model, recovery_chunks, rag_extration_requisitos, recovery_chunks, request_exatraction, prompt_rag_structured, banco_doc_licitacao, create_vectorstore_req
-from defs_analist import prompt_analista, query_analise
-from tools import tool_rag, tool_alimentar_requisitos, adicionar_requisito_tool
+from defs_analist import prompt_analista, query_analise 
+from tools import tool_rag, tool_alimentar_requisitos, adicionar_requisito_tool, tool_verificar_progresso
 import os
 
 
@@ -19,9 +19,9 @@ vectorstore_licitacao = banco_doc_licitacao()
 partes = recovery_chunks(vectorstore_licitacao)
   
 # carrega o modelo
-llm = load_model("gpt-4o-mini")
+llm = load_model("gpt-4.1-mini")
 
-# carrega o prompt estruturado
+# carrega o prompt estruturados
 prompt = prompt_rag_structured()
 
 # faz a chain do prompt e do modelo
@@ -48,16 +48,20 @@ template = ChatPromptTemplate.from_messages([
 ])
 
 agent = initialize_agent(
-    tools=[tool_rag, tool_alimentar_requisitos, adicionar_requisito_tool],
+    tools=[tool_rag, tool_alimentar_requisitos, adicionar_requisito_tool, tool_verificar_progresso],
     llm=llm,
+    temperature=0.1,
+    max_retries=0,
+    retry_min_seconds=1, 
+    retry_max_seconds=60,
     agent=AgentType.ZERO_SHOT_REACT_DESCRIPTION,
     prompt=template,
     max_iterations=100000,
-    early_stopping_method="generate",
+    early_stopping_method="force",
     handle_parsing_errors=True,
-    max_execution_time=100000000,
+    max_execution_time=10000000000,
     verbose=True,
 )
 result = agent.invoke({"input": query})
-print("Resposta final:", result["output"])
-print("Passos intermediários:", result["intermediate_steps"])
+print("Resposta final:", result.get("output", "Sem resposta"))
+print("Passos intermediários:", result.get("intermediate_steps", "Sem passos intermediários"))
