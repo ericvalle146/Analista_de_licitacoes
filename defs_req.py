@@ -7,7 +7,11 @@ from vectorstore import ensure_chroma, ensure_chroma_csv
 
 #====== EXTRAÇÃO DE REQUISITOS LICITAÇÃO ======##
 
-# banco vetorial da licitação
+# carregar modelo
+def load_model(model):
+    return ChatOpenAI(model=model, openai_api_key="")
+
+# Criação banco vetorial da licitação
 def banco_doc_licitacao():
     vectorstore = ensure_chroma(
         path_pdf="sata/CONCORRENTE.pdf",
@@ -18,9 +22,10 @@ def banco_doc_licitacao():
     )
     return vectorstore
 
-# carregar modelo
-def load_model(model):
-    return ChatOpenAI(model=model, openai_api_key="")
+# recuperção do todo documento da licitação
+def recovery_chunks(vectorstore):
+    data = vectorstore.get(include=["documents"])
+    return data["documents"]
 
 # prompt para recuperar requisitos
 def prompt_rag_structured():
@@ -34,9 +39,9 @@ def prompt_rag_structured():
     - Não mencione, explique ou faça referência ao mecanismo que forneceu o texto. Trabalhe apenas com o que foi recebido.
     
     2) Objetivo imediato:
-    - Extraia **até 40 requisitos/modulos distintos** do texto recebido, obedecendo estas regras:
-        ** Se o texto contiver 40 ou mais requisitos/modulos claramente expressos, retorne **40** — priorizando os requisitos/modulos mais explícitos e operacionais.
-        ** Se o texto contiver menos de 40 requisitos/modulos explícitos, retorne apenas os requisitos/modulos que existem — **não crie ou invente** requisitos/modulos adicionais.
+    - Extraia **até 20 requisitos/modulos distintos** do texto recebido, obedecendo estas regras:
+        ** Se o texto contiver 20 ou mais requisitos/modulos claramente expressos, retorne **20** — priorizando os requisitos/modulos mais explícitos e operacionais.
+        ** Se o texto contiver menos de 20 requisitos/modulos explícitos, retorne apenas os requisitos/modulos que existem — **não crie ou invente** requisitos/modulos adicionais.
 
     3) Regras de conteúdo e fidelidade:
     - **Preserve 100%** da redação do requisito tal qual aparece no texto. Não reescreva, não resuma, não interprete.
@@ -54,7 +59,7 @@ def prompt_rag_structured():
     - Não coloque numeradores extras, bullets, cabeçalhos, ou explicações.
     - NADA além dessas linhas deve ser impresso. Qualquer texto adicional é estritamente proibido.
 
-    6) Critérios de seleção quando houver mais de 40 candidatos:
+    6) Critérios de seleção quando houver mais de 20 candidatos:
     - Priorize requisitos/modulos que expressem ações, condições, entregas, critérios de aceitação, limites, interfaces, conformidade normativa e obrigações contratuais.
     - Exclua trechos que são meramente descritivos, exemplos ilustrativos, ou informações logísticas não-requisitivas.
 
@@ -64,7 +69,7 @@ def prompt_rag_structured():
     - Não inclua metadados, comentários, instruções ao leitor ou marcações internsas.
 
     8) Exemplo de saída (formato exato — mantenha estritamente o padrão):
-    "Requisito de Software: O sistema deverá ser desenvolvido em linguagem de programação Java, com suporte a banco de dados Oracle, e deverá ser desenvolvido em 3 (três) meses, a partir do dia 15 de dezembro de 2023, com início de produção no dia 15 de janeiro de 2024."
+    "Requisito de Software: O sistema deverá ser desenvolvido em linguagem de programação Java, com suporte a banco de dados Oracle, e deverá ser desenvolvido em 3 (três) meses, a partir do dia 20 de dezembro de 2023, com início de produção no dia 15 de janeiro de 2024."
     "Requisito de Segurança: O sistema deverá ser desenvolvido com segurança, com mecanismos de autenticação e autorização robustos, e com mecanismos de segurança de dados, como criptografia e proteção de dados em transitória, para garantir a confidencialidade, integridade e disponibilidade dos dados."
     "requisito de Performance: O sistema deverá ser desenvolvido com desempenho otimizado, com recursos de cache, memória e processamento, e com mecanismos de otimização de código e de rede."
     "Modulo de Negócio: A licitante assinalará 'SIM' ou 'NÃO' em campo próprio do sistema eletrônico, relativo às Declarações."
@@ -106,7 +111,16 @@ def prompt_rag_structured():
     ])
     return prompt
 
-# dar contexto sequencial para meu prompt
+# query para extrair requisitos
+def request_exatraction():
+    pergunta = """Por favor, analise o texto abaixo cuidadosamente e extraia no mínimo 20 requisitos/modulos distintos, numerados conforme a estrutura. Para cada requisito, gere um identificador no formato = "tipo do requisito:..." . Liste todos os requisitos/modulos extraídos, separados por aspas (""). O texto deve ser preservando a fidelidade ao texto original e mantendo o contexto integral, sem alterar o sentido ou omitir informações importantes
+    #### IMPORTANTE ####
+    A SAÍDA DEVE CONTER EXATAMENTE O NÚMERO SEQUENCIAL QUE ESTÁ CONTIDO NA PARTE DO TEXTO EM QUE PEGOU O REQUISITO!!!!
+    """
+    return pergunta
+
+# dar contexto sequencial para meu prompt 
+"aqui você faz uma tool"
 def ler_ultimas_linhas_csv(caminho_arquivo="requisitos.csv", num_linhas=4) -> str:
     """
     Lê as últimas `num_linhas` linhas do CSV e retorna como string concatenada, separadas por nova linha.
@@ -122,20 +136,8 @@ def ler_ultimas_linhas_csv(caminho_arquivo="requisitos.csv", num_linhas=4) -> st
     except FileNotFoundError:
         return ""
 
-# pergunta para extrair requisitos
-def request_exatraction():
-    pergunta = """Por favor, analise o texto abaixo cuidadosamente e extraia no mínimo 40 requisitos/modulos distintos, numerados conforme a estrutura. Para cada requisito, gere um identificador no formato = "tipo do requisito:..." . Liste todos os requisitos/modulos extraídos, separados por aspas (""). O texto deve ser preservando a fidelidade ao texto original e mantendo o contexto integral, sem alterar o sentido ou omitir informações importantes
-    #### IMPORTANTE ####
-    A SAÍDA DEVE CONTER EXATAMENTE O NÚMERO SEQUENCIAL QUE ESTÁ CONTIDO NA PARTE DO TEXTO EM QUE PEGOU O REQUISITO!!!!
-    """
-    return pergunta
-
-# recuperção do todo documento da licitação
-def recovery_chunks(vectorstore):
-    data = vectorstore.get(include=["documents"])
-    return data["documents"]
-
 # numerar arquivo csv formato aceitavel
+"aqui você faz uma tool"
 def numerar_arquivo_csv():
     """
     Modifica o arquivo requisitos.csv adicionando numeração sequencial
@@ -170,6 +172,7 @@ def numerar_arquivo_csv():
         return None
 
 # recuperação de requisitos
+"aqui você faz uma tool"
 def rag_extration_requisitos(chain, pergunta, partes):
     if not os.path.exists("requisitos.csv"):
         contexto_continuacao = ler_ultimas_linhas_csv("requisitos.csv", num_linhas=4)
@@ -205,6 +208,7 @@ def rag_extration_requisitos(chain, pergunta, partes):
         return "Requisitos já foram extraídos."
 
 # salvamento de requisitos em csv
+"aqui você faz uma tool"
 def append_reqs_to_csv(content, path='requisitos.csv'):
     import re, csv
     reqs = re.findall(r'"([^"]+)"', content)
@@ -214,6 +218,7 @@ def append_reqs_to_csv(content, path='requisitos.csv'):
             w.writerow([r])
 
 # criação do banco vetorial de requisitos extraidos
+"aqui você faz uma tool"
 def create_vectorstore_req():
     vectorstore_requisitos = ensure_chroma_csv(
     path_csv="requisitos_numerado.csv",
@@ -221,7 +226,8 @@ def create_vectorstore_req():
 )
     return vectorstore_requisitos
 
-# Função para alimentar o agente com os requisitos 
+# Função para alimentar o agente com os requisitos
+"aqui você faz uma tool" 
 def alimentacao_req(query: str):
     vectorstore_req = create_vectorstore_req()
     req = vectorstore_req._map_by_id.get(query)

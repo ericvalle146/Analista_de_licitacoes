@@ -1,7 +1,0 @@
-{
-    "CodeGPT.apiKey": "OpenAI",
-    "gitlens.ai.modelOptions.temperature": 0,
-    "workbench.settings.openDefaultSettings": false,
-    "workbench.settings.openDefaultKeybindings": false,
-    "typescript.preferences.includePackageJsonAutoImports": "auto"
-}

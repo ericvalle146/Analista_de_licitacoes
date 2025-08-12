@@ -1,4 +1,4 @@
-from langchain_text_splitters import RecursiveCharacterTextSplitter
+git add .from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_text_splitters import TokenTextSplitter
 from langchain_community.document_loaders import PyMuPDFLoader as PDFLoader
 from langchain_community.vectorstores import Chroma
@@ -7,9 +7,8 @@ import os
 from langchain_openai import OpenAIEmbeddings
 from dotenv import load_dotenv
 import pandas as pd
-load_dotenv()
 
-OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
+
 embedding = OpenAIEmbeddings(model="text-embedding-ada-002", openai_api_key="")
 
 
