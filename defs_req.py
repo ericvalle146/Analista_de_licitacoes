@@ -116,6 +116,7 @@ def prompt_rag_structured():
 # query para extrair requisitos
 def request_exatraction():
     pergunta = """Por favor, analise o texto abaixo cuidadosamente e extraia no mínimo 20 requisitos/modulos distintos, numerados conforme a estrutura. Para cada requisito, gere um identificador no formato = "tipo do requisito:..." . Liste todos os requisitos/modulos extraídos, separados por aspas (""). O texto deve ser preservando a fidelidade ao texto original e mantendo o contexto integral, sem alterar o sentido ou omitir informações importantes
+    cada requisito deve ter aproximadamente 100 tokens, remodu-le o requisito para ficar mais claro.
     #### IMPORTANTE ####
     A SAÍDA DEVE CONTER EXATAMENTE O NÚMERO SEQUENCIAL QUE ESTÁ CONTIDO NA PARTE DO TEXTO EM QUE PEGOU O REQUISITO!!!!
     """

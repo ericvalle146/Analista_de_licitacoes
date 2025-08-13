@@ -19,7 +19,7 @@ vectorstore_licitacao = banco_doc_licitacao()
 partes = recovery_chunks(vectorstore_licitacao)
   
 # carrega o modelo
-llm = load_model("gpt-4.1-mini")
+llm = load_model("gpt-4o-mini")
 
 # carrega o prompt estruturados
 prompt = prompt_rag_structured()
@@ -51,7 +51,7 @@ agent = initialize_agent(
     tools=[tool_rag, tool_alimentar_requisitos, adicionar_requisito_tool, tool_verificar_progresso],
     llm=llm,
     temperature=0.1,
-    max_retries=0,
+    max_retries=3,
     retry_min_seconds=1, 
     retry_max_seconds=60,
     agent=AgentType.ZERO_SHOT_REACT_DESCRIPTION,
@@ -61,6 +61,7 @@ agent = initialize_agent(
     handle_parsing_errors=True,
     max_execution_time=10000000000,
     verbose=True,
+    return_intermediate_steps=True
 )
 result = agent.invoke({"input": query})
 print("Resposta final:", result.get("output", "Sem resposta"))
