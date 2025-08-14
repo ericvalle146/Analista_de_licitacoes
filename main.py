@@ -35,7 +35,7 @@ rag_extration_requisitos(chain=chain, pergunta=pergunta, partes=partes)
 
 # cria a vectorstore para os requisitos do arquivo csv
 vectorstore_req = create_vectorstore_req()
-
+print(len(vectorstore_req))
 ##======== TREINAMENTO DO MODELO ========##
 
 system_message_prompt = prompt_analista()
@@ -46,23 +46,29 @@ template = ChatPromptTemplate.from_messages([
     SystemMessagePromptTemplate.from_template(system_message_prompt),
     HumanMessagePromptTemplate.from_template("{user_input}")
 ])
+contador = 0
+while contador < 100:
+    agent = initialize_agent(
+        tools=[tool_rag, tool_alimentar_requisitos, adicionar_requisito_tool, tool_verificar_progresso],
+        llm=llm,
+        temperature=0.1,
+        max_retries=3,
+        retry_min_seconds=1, 
+        retry_max_seconds=60,
+        agent=AgentType.ZERO_SHOT_REACT_DESCRIPTION,
+        prompt=template,
+        max_iterations=100000,
+        early_stopping_method="force",
+        handle_parsing_errors=False,
+        max_execution_time=10000000000,
+        verbose=True,
+        return_intermediate_steps=True
+    )
+    try:
+        result = agent.invoke({"input": query})
+        print("Resposta final:", result.get("output", "Sem resposta"))
+        print("Passos intermediários:", result.get("intermediate_steps", "Sem passos intermediários"))
+        contador += 1
+    except Exception as e:
 
-agent = initialize_agent(
-    tools=[tool_rag, tool_alimentar_requisitos, adicionar_requisito_tool, tool_verificar_progresso],
-    llm=llm,
-    temperature=0.1,
-    max_retries=3,
-    retry_min_seconds=1, 
-    retry_max_seconds=60,
-    agent=AgentType.ZERO_SHOT_REACT_DESCRIPTION,
-    prompt=template,
-    max_iterations=100000,
-    early_stopping_method="force",
-    handle_parsing_errors=True,
-    max_execution_time=10000000000,
-    verbose=True,
-    return_intermediate_steps=True
-)
-result = agent.invoke({"input": query})
-print("Resposta final:", result.get("output", "Sem resposta"))
-print("Passos intermediários:", result.get("intermediate_steps", "Sem passos intermediários"))
+        print(f"Erro detectado: {e}")
